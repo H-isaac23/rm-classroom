@@ -1,5 +1,6 @@
 chrome.tabs.onUpdated.addListener(async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  console.log("onUpdate");
   if (!tab.url) {
     console.log("URL not updated");
   } else if (tab.url.includes("https://classroom.google.com/")) {
@@ -11,9 +12,10 @@ chrome.tabs.onUpdated.addListener(async () => {
 });
 
 const configPage = () => {
+  console.log("wtf is this not executing");
   const getClasses = () => {
     const classList = document.querySelectorAll("ol > li");
-    classList.forEach((item) => {
+    classList.forEach((element) => {
       const checkbox = document.createElement("INPUT");
       checkbox.setAttribute("type", "checkbox");
       checkbox.setAttribute("class", "class-checkbox");
@@ -22,7 +24,7 @@ const configPage = () => {
       checkbox.style.margin = "10px 0 0 10px";
       checkbox.style.height = "1.5em";
       checkbox.style.width = "1.5em";
-      item.appendChild(checkbox);
+      element.appendChild(checkbox);
     });
   };
 
@@ -31,14 +33,18 @@ const configPage = () => {
     //if style is present, return
     if (isStylePresent) return;
 
-    const checkboxStyle = document.createElement("style");
-    checkboxStyle.setAttribute("class", "checkbox-style");
-    checkboxStyle.textContent = `
+    const styleOverride = document.createElement("style");
+    styleOverride.setAttribute("class", "checkbox-style");
+    styleOverride.textContent = `
       .hide-checkbox {
         display: none;
       }
+
+      .hide-class {
+        display: none;
+      }
     `;
-    document.body.appendChild(checkboxStyle);
+    document.body.appendChild(styleOverride);
   };
 
   // add checkbox styles
@@ -72,18 +78,32 @@ const configPage = () => {
     return;
   }
 
-  // create main checkbox
+  // create checkbox container with label and main checkbox
+  const checkboxContainer = document.createElement("div");
+  checkboxContainer.style.margin = "2em 0 0 2em";
+  checkboxContainer.style.display = "flex";
+  checkboxContainer.style.alignItems = "center";
+
+  const label = document.createElement("label");
+  label.textContent = "Toggle hidden classes";
+  label.style.fontWeight = "500";
+  checkboxContainer.appendChild(label);
+
+  // config main checkbox
   const checkbox = document.createElement("INPUT");
   checkbox.setAttribute("type", "checkbox");
   checkbox.setAttribute("id", "rm-classroom-checkbox");
-  checkbox.style.margin = "2em 0 0 2em";
   checkbox.style.height = "1.5em";
   checkbox.style.width = "1.5em";
   checkbox.addEventListener("change", (e) => {
     const classCheckboxes = document.querySelectorAll(".class-checkbox");
     classCheckboxes.forEach((element) => {
       element.classList.toggle("hide-checkbox");
+      if (element.checked) {
+        element.parentElement.classList.toggle("hide-class");
+      }
     });
   });
-  document.querySelector("ol").parentElement.prepend(checkbox);
+  checkboxContainer.appendChild(checkbox);
+  document.querySelector("ol").parentElement.prepend(checkboxContainer);
 };
